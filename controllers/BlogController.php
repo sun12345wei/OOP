@@ -88,7 +88,6 @@ class BlogController
         // 执行 SQL
         $stmt->execute($value);
 
-
         // 取数据
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -97,5 +96,6 @@ class BlogController
             'data' => $data,
             'btns' => $btns,
         ]);
+
     }
 }
