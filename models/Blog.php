@@ -1,20 +1,8 @@
 <?php
 namespace models;
 
-use PDO;
-
-class Blog
-{
-    // 保存 PDO 对象
-    public $pdo;
-
-    public function __construct()
-    {
-        // 取日志的数据
-        $this->pdo = new PDO('mysql:host=127.0.0.1;dbname=blog', 'root', '');
-        $this->pdo->exec('SET NAMES utf8');
-    }
-
+class Blog extends Base
+{ 
     // 搜索日志
     public function search()
     {
@@ -75,7 +63,7 @@ class Blog
 
         // 制作按钮
         // 取出总的记录数
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM blogs WHERE $where");
+        $stmt = self::$pdo->prepare("SELECT COUNT(*) FROM blogs WHERE $where");
         $stmt->execute($value);
         $count = $stmt->fetch( PDO::FETCH_COLUMN );
         // 计算总的页数（ceil：向上取整（天花板）， floor：向下取整（地板））
@@ -94,7 +82,7 @@ class Blog
 
         /*************** 执行 sqL */
         // 预处理 SQL
-        $stmt = $this->pdo->prepare("SELECT * FROM blogs WHERE $where ORDER BY $odby $odway LIMIT $offset,$perpage");
+        $stmt = self::$pdo->prepare("SELECT * FROM blogs WHERE $where ORDER BY $odby $odway LIMIT $offset,$perpage");
         // 执行 SQL
         $stmt->execute($value);
 
@@ -109,7 +97,7 @@ class Blog
 
     public function content2html()
     {
-        $stmt = $this->pdo->query('SELECT * FROM blogs');
+        $stmt = self::$pdo->query('SELECT * FROM blogs');
         $blogs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // 开启缓冲区
@@ -134,7 +122,7 @@ class Blog
     public function index2html()
     {
         // 取 前20 条记录 数据 
-        $stmt = $this->pdo->query("SELECT * FROM blogs WHERE is_show=1 ORDER BY id DESC LIMIT 20");
+        $stmt = self::$pdo->query("SELECT * FROM blogs WHERE is_show=1 ORDER BY id DESC LIMIT 20");
         $blogs = $stmt->fetchAll(PDO::FETCH_ASSOC);   
         
         // 开启一个缓冲区

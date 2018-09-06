@@ -59,12 +59,7 @@ class UserController
         $message = json_encode($message);
 
         // 放到队列中
-        $redis = new \Predis\Client([
-            'scheme' => 'tcp',
-            'host' => '127.0.0.1',
-            'port' => 6379,
-        ]);
-
+        $redis = \libs\Redis::getInstance();
         $redis->lpush('email', $message);
 
         echo 'ok';

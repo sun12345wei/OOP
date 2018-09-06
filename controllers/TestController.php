@@ -3,6 +3,17 @@ namespace controllers;
 
 class TestController 
 {
+    public function testConfig()
+    {
+        $re = config('redis');
+        $db = config('db');
+
+        echo '<pre>';
+        var_dump($re);
+
+        var_dump($db);
+    }
+
     public function register()
     {
         // 注册成功
@@ -33,11 +44,7 @@ class TestController
 
         echo "邮件程序已启动....等待中...";
 
-        $redis = new \Predis\Client([
-            'scheme' => 'tcp',
-            'host' => '127.0.0.1',
-            'port' => 6379,
-        ]);
+        $redis = \libs\Redis::getInstance();
 
         // 循环监听一个列表
         while(true)
