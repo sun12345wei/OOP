@@ -152,4 +152,55 @@ class Blog
         file_put_contents(ROOT.'public/index.html', $str);
 
     }
+
+    // 获取日志的浏览量
+    // 参数：日志ID
+    public function getDisplay($id)
+    {
+        // 使用日志ID拼出键名
+        $key = "blog-{$id}";
+
+        // 连接 Redis
+        $redis = \libs\Redis::getInstance();
+
+        // 判断 hash 中是否有这个键，如果有就操作内存，如果没有就从数据库中取
+        // hexists：判断有没有键
+        if($redis->hexists('blog_displays', $key))
+        {
+            // 累加 并且 返回添加完之后的值
+            // hincrby ：把值加1
+            $newNum = $redis->hincrby('blog_displays', $key, 1);
+            return $newNum;
+        }
+        else
+        {
+            // 从数据库中取出浏览量
+            $stmt = self::$pdo->prepare('SELECT display FROM blogs WHERE id=?');
+            $stmt->execute([$id]);
+            $display = $stmt->fetch( PDO::FETCH_COLUMN );
+            $display++;
+            // 保存到 redis
+            // hset：保存到  Redis
+            $redis->hset('blog_displays', $key, $display);
+            return $display;
+        }
+    }
+
+    // 把内存中的浏览量回写到数据库中
+    public function displayToDb()
+    {
+        // 1. 先取出内存中所有的浏览量
+        // 连接 Redis
+        $redis = \libs\Redis::getInstance();
+
+        $data = $redis->hgetall('blog_displays');
+
+        // 2. 更新回数据库
+        foreach($data as $k => $v)
+        {
+            $id = str_replace('blog-', '', $k);
+            $sql = "UPDATE blogs SET display={$v} WHERE id = {$id}";
+            self::$pdo->exec($sql);
+        }
+    }
 }
