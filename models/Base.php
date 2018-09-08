@@ -18,7 +18,7 @@ class Base
         {
             $config = config('db');
             // 取日志的数据
-            self::$pdo = new \PDO('mysql:host='.$config['host'].';dbname='.$config['dbname'], $config['user'], $config['pass']);
+            self::$pdo = new PDO('mysql:host='.$config['host'].';dbname='.$config['dbname'], $config['user'], $config['pass']);
             self::$pdo->exec('SET NAMES '.$config['charset']);
         }
     }

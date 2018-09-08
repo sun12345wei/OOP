@@ -1,4 +1,11 @@
 <?php
+// 使用 redis 保存 SESSION
+ini_set('session.save_handler', 'redis');
+// 设置 redis 服务器的地址、端
+ini_set('session.save_path', 'tcp://127.0.0.1:6379?database=3');
+
+session_start();
+
 // 定义常量
 define('ROOT', dirname(__FILE__) . '/../');
 
@@ -96,4 +103,73 @@ function config($name)
         $config = require(ROOT.'config.php');
     }
     return $config[$name];
+}
+
+function redirect($url)
+{
+    header('Location:' . $url);
+    exit;
+}
+
+// 跳回上一个页面
+function back()
+{
+    redirect( $_SERVER['HTTP_REFERER'] );
+}
+
+// 提示消息的函数
+// type 0:alert   1:显示单独的消息页面  2：在下一个页面显示
+// 说明：$seconds 只有在 type=1时有效，代码几秒自动跳动
+function message($message, $type, $url, $seconds = 5)
+{
+    if($type == 0)
+    {
+        echo "<script>alert('{$message}');location.href='{$url}';</script>";
+        exit;
+    }
+    else if($type == 1)
+    {
+        // 加载消息页面
+        view('common.success', [
+            'message' => $message,
+            'url' => $url,
+            'seconds' => $seconds
+        ]);
+    }
+    else if($type==2)
+    {
+        // 把消息保存到 SESSION
+        $_SESSION['_MESS_'] = $message;
+        // 跳转到下一个页面
+        redirect($url);
+    }
+}
+
+// 过滤XSS（在线编辑器填写的内容不能使用该函数过滤）
+function e($content)
+{
+    return htmlspecialchars($content);
+}
+
+// 使用 htmlpurifer 过滤（因为性能慢，这个函数只用在，
+// 使用在线编辑器填写内容的字段上，其它字段使用上面的 e 函数过滤）
+function hpe($content)
+{
+    // 一直保存在内存中（直到脚本执行结束）
+    static $purifier = null;
+    // 只有第一次调用时才会创建新的对象
+    if($purifier === null)
+    {
+        $config = \HTMLPurifier_Config::createDefault();
+        $config->set('Core.Encoding', 'utf-8');
+        $config->set('HTML.Doctype', 'HTML 4.01 Transitional');
+        $config->set('Cache.SerializerPath', ROOT.'cache');
+        $config->set('HTML.Allowed', 'div,b,strong,i,em,a[href|title],ul,ol,ol[start],li,p[style],br,span[style],img[width|height|alt|src],*[style|class],pre,hr,code,h2,h3,h4,h5,h6,blockquote,del,table,thead,tbody,tr,th,td');
+        $config->set('CSS.AllowedProperties', 'font,font-size,font-weight,font-style,margin,width,height,font-family,text-decoration,padding-left,color,background-color,text-align');
+        $config->set('AutoFormat.AutoParagraph', TRUE);
+        $config->set('AutoFormat.RemoveEmpty', true);
+        $purifier = new \HTMLPurifier($config);
+    }
+    $clean_html = $purifier->purify($content);
+    return $clean_html;
 }
