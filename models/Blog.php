@@ -5,6 +5,69 @@ use PDO;
 
 class Blog extends Base
 { 
+    // 为某一个日志生成静态页面
+    // 参数：日志的ID
+    public function makeHtml($id)
+    {
+        // 1. 取出日志的信息
+        $blog = $this->find($id);
+
+        // 2. 打开缓冲区、并且加载视图到缓冲区
+        ob_start();
+
+        view('blogs.content', [
+            'blog' => $blog,
+        ]);
+
+        // 3. 从缓冲区中取出视图并写到静态页中
+        $str = ob_get_clean();
+        file_put_contents(ROOT.'public/contents/'.$id.'.html', $str);
+    }
+
+    // 删除静态页
+    public function deleteHtml($id)
+    {
+        // @ 防止 报错：有这个文件就删除，没有就不删除，不用报错
+        @unlink(ROOT.'public/contents/'.$id.'.html');
+    }
+
+    public function find($id)
+    {
+        $stmt = self::$pdo->prepare('SELECT * FROM blogs where id = ?');
+        $stmt->execute([
+            $id
+        ]);
+        // 取出数据
+        return $stmt->fetch();
+    }
+
+    public function getNew()
+    {
+        $stmt = self::$pdo->query('SELECT * FROM blogs WHERE is_show=1 ORDER BY id DESC LIMIT 20');
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function delete($id)
+    {
+        // 只能删除自己的日志
+        $stmt = self::$pdo->prepare('DELETE FROM blogs WHERE id = ? AND user_id=?');
+        $stmt->execute([
+            $id,
+            $_SESSION['id'],
+        ]);
+    }
+
+    public function update($title,$content,$is_show,$id)
+    {
+        $stmt = self::$pdo->prepare("UPDATE blogs SET title=?,content=?,is_show=? WHERE id=?");
+        $ret = $stmt->execute([
+            $title,
+            $content,
+            $is_show,
+            $id,
+        ]);
+    } 
+
     public function add($title,$content,$is_show)
     {
         $stmt = self::$pdo->prepare("INSERT INTO blogs(title,content,is_show,user_id) VALUES(?,?,?,?)");
@@ -30,8 +93,8 @@ class Blog extends Base
     // 搜索日志
     public function search()
     {
-        // 设置的 $where
-        $where = 1;
+        // 取出当前用户的日志
+        $where = 'user_id='.$_SESSION['id'];
 
         // 放预处理对应的值
         $value = [];
