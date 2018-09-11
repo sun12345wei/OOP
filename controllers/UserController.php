@@ -3,9 +3,41 @@ namespace controllers;
 
 // 引入模型类
 use models\User;
+use models\Order;
 
 class UserController
 {
+    public function money()
+    {
+        $user = new User;
+        echo $user->getMoney();
+    }
+
+    public function dochage()
+    {
+        // 生成订单
+        $money = $_POST['money'];
+        $model = new Order;
+        $model->create($money);
+        message('充值订单已生成，请立即支付！', 2, '/user/orders');
+    }
+
+    // 订单列表
+    public function orders()
+    {
+        $order = new Order;
+        // 搜索数据
+        $data = $order->search();
+        
+        // 加载视图
+        view('users.order', $data);
+    }
+
+    public function charge()
+    {
+        view('users.charge');
+    }
+    
     public function logout()
     {
         // 清空 SESSION
@@ -120,6 +152,8 @@ class UserController
         // 判断有没有
         if($data)
         {
+            // 从 redis 中删除激活码
+            $redis->del($key);
             // 反序列化（转回数组）
             $data = json_decode($data, true);
             // 插入到数据库中

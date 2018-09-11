@@ -3,6 +3,21 @@ namespace controllers;
 
 class TestController 
 {
+
+    public function testTrans()
+    {
+        $model = new \models\User;
+        $model->trans();
+    }
+
+    public function testSnowflake()
+    {
+        $flake = new \libs\Snowflake(1023);
+        for($i=0; $i<10;$i++) {
+            echo $flake->nextId() . '<br>';
+        }
+    }
+
     public function testPurify()
     {
         // 测试字符串

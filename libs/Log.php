@@ -3,6 +3,7 @@ namespace libs;
 
 class Log
 {
+    private $fp;
     // 参数：日志文件名
     public function __construct($fileName)
     {
@@ -14,6 +15,11 @@ class Log
     public function log($content)
     {
         // 获取当前时间
-        fwrite($this->fp, $content . "\r\n");
+        $date = date('Y-m-d H:i:s');
+        // 拼出日志内容的格式  （在文件中 "\r\n" 是换行的意思）
+        $c = $adte . "\r\n";
+        $c .= str_repeat('=', 120) . "\r\n";    //  str_repeat：获取 120 个 =
+        $c .= $content . "\r\n\r\n";
+        fwrite($this->fp, $c);
     }
 }
