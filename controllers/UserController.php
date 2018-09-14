@@ -7,6 +7,84 @@ use models\Order;
 
 class UserController
 {
+    public function uploadbig()
+    {
+        $count = $_POST['count'];  // 总的数量
+        $i = $_POST['i'];          // 当前是第几块
+        $size = $_POST['size'];     // 每块大小
+
+        $img = $_POST['img'];       // 图片
+
+        // 保存每个分片
+        move_uploaded_file( $img['tmp_name'], ROOT.'tmp/'.$i);
+
+        // 如果所有分片都上传成功，就合并所有文件为一个文件
+        $redis = \libs\Reids::getInstance();
+        // 每上传一张就加1
+        $uploadedCount = $redis->incr($name);
+        // 如果是最后一个分支就合并
+        if($uploadedCount == $count)
+        {
+            // 以追回的方式创建并打开最终的大文件
+            $fp = fopen(ROOT.'public/uploads/big/'.$name.'.png', 'a');
+            // 循环所有的分片
+            for($i=0; $i<$count; $i++)
+            {
+                // 读取第 i 号文件并写到大文件中
+                fwrite($fp, file_get_contents(ROOT.'tmp/'.$i));
+                // 删除第 i 号临时文件
+                unlink(ROOT.'tmp'.$i);
+            }
+            // 关闭文件
+            fclose($fp);
+            // 从 redis 中删除这个文件对应的编号这个变量
+            $redis->del($name);
+        }
+    }
+
+    public function uploadall()
+    {
+        /*先创建目录*/
+        $root = ROOT.'public/uploads/';
+        // 今天日期
+        $date = date('Ymd');  // 20180913
+        // 如果没有这个目录就创建目录
+        if(!is_dir($root . $date))
+        {
+            // 创建目录
+            mkdir($root . $date, 0777);
+        } 
+
+
+        foreach($_FILES['images']['name'] as $v)
+        {
+            $name = md5( time() . rand(1,9999) );
+            $ext = strrchr($v, '.');
+            $name = $name . $ext;
+            // 根据 name 的下标找到对应的临时文件并移动
+            move_uploaded_file($_FILES['images']['tmp_name'][$k], $root . $date .'/' . $name);
+            echo $root . $date .'/' . $name . '<hr>';
+        }
+    }
+
+    public function album()
+    {
+        view('users.album');
+    }
+
+    public function setavatar()
+    {
+        $upload = \libs\Uploader::make();
+        $upload->upload('avatar', 'avatar');
+
+        echo $path;
+    }
+
+    public function avatar()
+    {
+        view('users.avatar');
+    }
+
     public function orderStatus()
     {
         $sn = $_GET['sn'];
