@@ -7,9 +7,11 @@ class Uploader
     private function __construct(){}
     // 不允许克隆
     private function __clone(){}
+    // 保存唯一的对象（只有静态的属性属于这个类是唯一的）
+    private static $_obj = null;
 
     // 提供一个公共的方法获取对象
-    public static function getInstance()
+    public static function make()
     {
         if(self::$_obj === null)
         {
@@ -22,10 +24,12 @@ class Uploader
     private $_root = ROOT . 'public/uploads/';    // 图片保存的一级目录
     private $_ext = ['image/jpeg','image/jpg','image/ejpeg','image/png','image/gif','image/bmp'];
     private $_maxSize = 1024*1024*1.8;    // 最大允许上传的尺寸，1.8M
+   
     private $_file;  // 保存用户上传的图片信息
+    private $_subDir;
 
     // 上传图片
-    public function upload($name)
+    public function upload($name, $subdir)
     {
         // 把用户图片的信息保存的属性上
         $this->_file = $_FILES[$name];
