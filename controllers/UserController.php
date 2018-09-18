@@ -4,11 +4,10 @@ namespace controllers;
 // 引入模型类
 use models\User;
 use models\Order;
+use Intervention\Image\ImageManagerStatic as Image;
 
 class UserController
 {
-    
-
     public function uploadbig()
     {
         $count = $_POST['count'];  // 总的数量
@@ -76,28 +75,33 @@ class UserController
 
     // 设置头像
     public function setavatar()
-    {
-        // 上传新头像
-        $upload = \libs\Uploader::make();
-        $path = $upload->upload('avatar', 'avatar');
+{
+    // 上传新头像
+    $upload = \libs\Uploader::make();
+    $path = $upload->upload('avatar', 'avatar');
 
-        // 保存到 user 表中
-        $model = new \models\User;
-        $model->setAvatar('/uploads/'.$path);
+    // 裁切图片
+    $image = Image::make(ROOT . 'public/uploads/'.$path);
+    // 注意：Crop 参数必须是整数，所以需要转成整数：(int)
+    // $image->crop((int)$_POST['w'], (int)$_POST['h'], (int)$_POST['x'], (int)$_POST['y']);
+    // 保存时覆盖原图
+    $image->save(ROOT . 'public/uploads/'.$path);
 
-        // 注意：网站中图片有两个路径
-        // 浏览器（从网站根目录开始找）： /uploads/avatar/20180914/041a05ec7f7179dab8e00b13de997f1a.jpg
-        // 硬盘上的路径 :    D:/www/blog/7f7179dab8e00b13de997f1a.jpg
-        // 删除原头像
-        @unlink( ROOT . 'public'.$_SESSION['avatar'] );
+    // 保存到 user 表中
+    $model = new \models\User;
+    $model->setAvatar('/uploads/'.$path);
 
-        // 设置新头像
-        $_SESSION['avatar'] = '/uploads/'.$path;
+    // 注意：网站中图片有两个路径
+    // 浏览器（从网站根目录开始找）： /uploads/avatar/20180914/041a05ec7f7179dab8e00b13de997f1a.jpg
+    // 硬盘上的路径 :    D:/www/blog/7f7179dab8e00b13de997f1a.jpg
+    // 删除原头像
+    @unlink( ROOT . 'public'.$_SESSION['avatar'] );
 
+    // 设置新头像
+    $_SESSION['avatar'] = '/uploads/'.$path;
 
-        message('设置成功', 2, '/blog/index');
-    }
-
+    message('设置成功', 2, '/blog/index');
+}
     public function avatar()
     {
         view('users.avatar');

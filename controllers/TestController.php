@@ -1,8 +1,19 @@
 <?php
 namespace controllers;
 
+use Intervention\Image\ImageManagerStatic as Image;
+
 class TestController 
 {
+    public function testImage()
+    {
+        // 打开要处理的图片
+        $image = Image::make(ROOT . 'public/uploads/big.jpg');
+        // 加水印
+        $image->insert(ROOT . 'public/uploads/02.png', 'top-right');
+        // 保存图片
+        $image->save(ROOT . 'public/uploads/big_water.png');
+    }
 
     public function testTrans()
     {
