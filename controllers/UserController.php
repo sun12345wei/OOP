@@ -8,6 +8,13 @@ use Intervention\Image\ImageManagerStatic as Image;
 
 class UserController
 {
+  
+    public function setActiveUsers()
+    {
+        $user = new User;
+        $user->computeActiveUsers();
+    }
+
     public function uploadbig()
     {
         $count = $_POST['count'];  // 总的数量
